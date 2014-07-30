@@ -3,7 +3,7 @@
 " An example for a Japanese version vimrc file.
 " 日本語版のデフォルト設定ファイル(vimrc) - Vim7用試作
 "
-" Last Change: 29-Jul-2014.
+" Last Change: 30-Jul-2014.
 " Maintainer:  MURAOKA Taro <koron.kaoriya@gmail.com>
 "
 " 解説:
@@ -31,6 +31,9 @@
 "   :version
 
 "---------------------------------------------------------------------------
+scriptencoding utf-8
+set encoding=utf-8
+set fileencodings=ucs-bom,iso-2022-jp,euc-jp,utf-8,cp932,utf-16le,utf-16
 " サイトローカルな設定($VIM/vimrc_local.vim)があれば読み込む。読み込んだ後に
 " 変数g:vimrc_local_finishに非0な値が設定されていた場合には、それ以上の設定
 " ファイルの読込を中止する。
@@ -60,15 +63,17 @@ endif
 " ファイルを読込む時にトライする文字エンコードの順序を確定する。漢字コード自
 " 動判別機能を利用する場合には別途iconv.dllが必要。iconv.dllについては
 " README_w32j.txtを参照。ユーティリティスクリプトを読み込むことで設定される。
-source $VIMRUNTIME/encode_japan.vim
-" メッセージを日本語にする (Windowsでは自動的に判断・設定されている)
-if !(has('win32') || has('mac')) && has('multi_lang')
-  if !exists('$LANG') || $LANG.'X' ==# 'X'
-    if !exists('$LC_CTYPE') || $LC_CTYPE.'X' ==# 'X'
-      language ctype ja_JP.eucJP
-    endif
-    if !exists('$LC_MESSAGES') || $LC_MESSAGES.'X' ==# 'X'
-      language messages ja_JP.eucJP
+if filereadable($VIMRUNTIME . "/encode_japan.vim")
+  source $VIMRUNTIME/encode_japan.vim
+  " メッセージを日本語にする (Windowsでは自動的に判断・設定されている)
+  if !(has('win32') || has('mac')) && has('multi_lang')
+    if !exists('$LANG') || $LANG.'X' ==# 'X'
+      if !exists('$LC_CTYPE') || $LC_CTYPE.'X' ==# 'X'
+        language ctype ja_JP.eucJP
+      endif
+      if !exists('$LC_MESSAGES') || $LC_MESSAGES.'X' ==# 'X'
+        language messages ja_JP.eucJP
+      endif
     endif
   endif
 endif
@@ -225,7 +230,7 @@ endif
 set runtimepath+=$VIM/plugins/autofmt
 set formatexpr=autofmt#japanese#formatexpr()
 
-set viminfo+=nC:/usr/bin/editor/vim73-kaoriya-win32/_viminfo
+"set viminfo+=nC:/usr/bin/editor/vim73-kaoriya-win32/_viminfo
 
 ""
 "" tex.vim
@@ -233,9 +238,24 @@ set viminfo+=nC:/usr/bin/editor/vim73-kaoriya-win32/_viminfo
 filetype plugin on
 let g:tex_flavor='latex'
 
-autocmd QuickFixCmdPost *grep* cwindow
+if has("autocmd")
+  autocmd QuickFixCmdPost *grep* cwindow
+  autocmd FileType go set tabstop=4 noexpandtab softtabstop=4
+endif
+
 
 " 追加plugin
 set rtp+=$GOROOT/misc/vim
+
+" unite.vim
+if filereadable($VIMRUNTIME . "plugin/unite.vim")
+  let g:unite_enable_start_insert=1
+  let g:unite_source_history_yank_enable=1
+  let g:unite_source_file_mru_limit=100
+  nnoremap <silent> ,uf :<C-u>UniteWithBufferDir -buffer-name=files file<CR>
+  nnoremap <silent> ,ub :<C-u>Unite buffer<CR>
+  nnoremap <silent> ,um :<C-u>Unite file_mru buffer<CR>
+  nnoremap <silent> ,uy :<C-u>Unite history/yank<CR>
+endif
 
 " Copyright (C) 2011 KaoriYa/MURAOKA Taro
